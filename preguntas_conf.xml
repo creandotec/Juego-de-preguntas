@@ -1,0 +1,30 @@
+<Preguntas>
+  <Pregunta Title = "PREGUNTA 1" ans = "A" id="1">
+    <Opcion1 tecla="A">OPCIÓN A</Opcion1>
+    <Opcion2 tecla="B">OPCIÓN B</Opcion2>
+    <Opcion3 tecla="C">OPCIÓN C</Opcion3>
+    <Opcion4 tecla="D">OPCIÓN D</Opcion4>
+    <Background file_name=".test.jpg"/>
+  </Pregunta>
+  <Pregunta Title = "PREGUNTA 2" ans = "B" id="2">
+    <Opcion1 tecla="A">OPCIÓN A</Opcion1>
+    <Opcion2 tecla="B">OPCIÓN B</Opcion2>
+    <Opcion3 tecla="C">OPCIÓN C</Opcion3>
+    <Opcion4 tecla="D">OPCIÓN D</Opcion4>
+    <Background file_name=".test.jpg"/>
+  </Pregunta>
+  <Pregunta Title = "PREGUNTA 3" ans = "C" id="3">
+    <Opcion1 tecla="A">OPCIÓN A</Opcion1>
+    <Opcion2 tecla="B">OPCIÓN B</Opcion2>
+    <Opcion3 tecla="C">OPCIÓN C</Opcion3>
+    <Opcion4 tecla="D">OPCIÓN D</Opcion4>
+    <Background file_name=".test.jpg"/>
+  </Pregunta>
+  <Pregunta Title = "PREGUNTA 4" ans = "D" id="4">
+    <Opcion1 tecla="A">OPCIÓN A</Opcion1>
+    <Opcion2 tecla="B">OPCIÓN B</Opcion2>
+    <Opcion3 tecla="C">OPCIÓN C</Opcion3>
+    <Opcion4 tecla="D">OPCIÓN D</Opcion4>
+    <Background file_name=".test.jpg"/>
+  </Pregunta>
+</Preguntas>
