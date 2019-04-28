@@ -1,30 +1,30 @@
 <Preguntas>
-  <Pregunta Title = "PREGUNTA 1" ans = "A" id="1">
-    <Opcion tecla="A" texto="OPCIÓN A"></Opcion>
-    <Opcion tecla="B" texto="OPCIÓN B">OPCIÓN B</Opcion>
-    <Opcion tecla="C" texto="OPCIÓN C">OPCIÓN C</Opcion>
-    <Opcion tecla="D" texto="OPCIÓN D">OPCIÓN D</Opcion>
+  <Pregunta Title = "PREGUNTA 1" ans = "240" id="1">
+    <Opcion tecla="A" texto="19A"></Opcion>
+    <Opcion tecla="B" texto="1900"></Opcion>
+    <Opcion tecla="C" texto="240"></Opcion>
+    <Opcion tecla="D" texto="3AB0"></Opcion>
     <Background file_name="1.jpg"/>
   </Pregunta>
-  <Pregunta Title = "PREGUNTA 2" ans = "B" id="2">
-    <Opcion tecla="A">OPCIÓN A</Opcion>
-    <Opcion tecla="B">OPCIÓN B</Opcion>
-    <Opcion tecla="C">OPCIÓN C</Opcion>
-    <Opcion tecla="D">OPCIÓN D</Opcion>
+  <Pregunta Title = "PREGUNTA 2" ans = "49D" id="2">
+    <Opcion tecla="A" texto="19A">OPCIÓN A</Opcion>
+    <Opcion tecla="B" texto="20B">OPCIÓN B</Opcion>
+    <Opcion tecla="C" texto="30C">OPCIÓN C</Opcion>
+    <Opcion tecla="D" texto="49D">OPCIÓN D</Opcion>
     <Background file_name="2.jpg"/>
   </Pregunta>
-  <Pregunta Title = "PREGUNTA 3" ans = "C" id="3">
-    <Opcion tecla="A">OPCIÓN A</Opcion>
-    <Opcion tecla="B">OPCIÓN B</Opcion>
-    <Opcion tecla="C">OPCIÓN C</Opcion>
-    <Opcion tecla="D">OPCIÓN D</Opcion>
+  <Pregunta Title = "PREGUNTA 3" ans = "C40" id="3">
+    <Opcion tecla="A" texto="A20">OPCIÓN A</Opcion>
+    <Opcion tecla="B" texto="B30">OPCIÓN B</Opcion>
+    <Opcion tecla="C" texto="C40">OPCIÓN C</Opcion>
+    <Opcion tecla="D" texto="D50">OPCIÓN D</Opcion>
     <Background file_name="3.jpg"/>
   </Pregunta>
-  <Pregunta Title = "PREGUNTA 4" ans = "D" id="4">
-    <Opcion tecla="A">OPCIÓN A</Opcion>
-    <Opcion tecla="B">OPCIÓN B</Opcion>
-    <Opcion tecla="C">OPCIÓN C</Opcion>
-    <Opcion tecla="D">OPCIÓN D</Opcion>
+  <Pregunta Title = "PREGUNTA 4" ans = "D25" id="4">
+    <Opcion tecla="A" texto="A30">OPCIÓN A</Opcion>
+    <Opcion tecla="B" texto="D25">OPCIÓN B</Opcion>
+    <Opcion tecla="C" texto="C15">OPCIÓN C</Opcion>
+    <Opcion tecla="D" texto="D29">OPCIÓN D</Opcion>
     <Background file_name="4.jpg"/>
   </Pregunta>
 </Preguntas>

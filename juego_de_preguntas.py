@@ -5,11 +5,12 @@ import sys
 class Preguntas:
     lista_de_preguntas = list()
     answer = list()
-
     answer.append("1")
     user_chosen_option = "1"
-    def CheckAnswer(answer, numero_de_pregunta):
-        if Preguntas.answer[0] == Preguntas.user_chosen_option:
+
+    def CheckAnswer(user_answer, numero_de_pregunta):
+        correc_answer = Preguntas.lista_de_preguntas[numero_de_pregunta].getAttribute("ans")
+        if correc_answer == user_answer:
             print("Ok")
             return True
         else:
@@ -56,6 +57,13 @@ class Display:
         self.text = self.font.render(texto, True, (0,0,0))
         self.screen.blit(self.text, (100,100))
         pygame.display.update()
+
+    def Show_user_input(self, user_input):
+        texto = ""
+        texto += user_input
+        self.text = self.font.render(texto, True, (255,255,255))
+        self.screen.blit(self.text, (100, 100))
+        pygame.display.update()
 #Aquí configuramos las preguntas que se utilizarán durante el juego
 def get_questions():
     #Primero abrimos el documento XML en donde están las Preguntas
@@ -78,7 +86,7 @@ def main():
     _display = Display()
     done = False
     clock = pygame.time.Clock()
-
+    user_answer = ""
     _display.Load_new_image(numero_de_pregunta)
     Done = False
     while True:
@@ -87,13 +95,21 @@ def main():
                 sys.exit()
             if event.type == pygame.KEYDOWN:
                 key = pygame.key.name(event.key)
-                key = key.capitalize()
-                _display.Show_chosen_answer(key, numero_de_pregunta)
+                if event.key is not pygame.K_RETURN:
+                    key = key.capitalize()
+                    user_answer += key
+                    _display.Show_user_input(user_answer)
+                else:
+                    correcto = Preguntas.CheckAnswer(user_answer, numero_de_pregunta)
+                    if correcto == True:
+                        numero_de_pregunta += 1
+                        _display.Load_new_image(numero_de_pregunta)
+                    user_answer = ""
 
                 #En correcto se almacena si la respuesta elegida es correcta o no
-                correcto = Preguntas.CheckAnswer(key, numero_de_pregunta)
+                #correcto = Preguntas.CheckAnswer(key, numero_de_pregunta)
                 #Aumentamos en uno el número de pregunta para pasar a la siguiente
-                numero_de_pregunta += 1
+                #numero_de_pregunta += 1
                 #if correcto == True:
         if numero_de_pregunta > len(Preguntas.lista_de_preguntas):
             sys.exit()
