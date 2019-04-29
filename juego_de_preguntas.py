@@ -48,7 +48,7 @@ class Preguntas:
 
 class Display:
     def __init__(self):
-        self.screen = pygame.display.set_mode((0,0))
+        self.screen = pygame.display.set_mode((0,0), pygame.FULLSCREEN)
         self.pregunta_background = 0
         w,h = pygame.display.get_surface().get_size()
         self.font = pygame.font.SysFont("comicsansms", font_size)
@@ -250,6 +250,8 @@ def main():
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
+                sys.exit()
+            if event.type == pygame.K_ESCAPE:
                 sys.exit()
             if event.type == pygame.KEYDOWN:
                 key = pygame.key.name(event.key)
