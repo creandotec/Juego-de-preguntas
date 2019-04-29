@@ -3,10 +3,8 @@ import xml.dom.minidom as xmlDom
 import pygame
 import sys
 import time
+import RPi.GPIO as GPIO
 
-RPi = True
-if RPi == True:
-    import RPi.GPIO as GPIO
 #Tiempo de espera antes de quitar la imagen de correcto o incorrecto
 #modifica este valor para esperar más o menos tiempo, el valor es en segundos
 tiempo_de_espera = 3
@@ -15,10 +13,10 @@ tiempo_de_espera = 3
 input_position = (100, 100)
 
 #Número de pin en que se encuentra el relevador A
-relay_a_pin = 19
+relay_a_pin = 7
 
 #Número de pin que se encuentra el relevador B
-relay_b_pin = 20
+relay_b_pin = 9
 
 class Preguntas:
     lista_de_preguntas = list()
@@ -109,6 +107,13 @@ def get_questions():
     else:
         print("No está funcionando bien el script {}".format(collection.tagName))
 
+def init_gpio():
+    GPIO.setmode(GPIO.BOARD)
+    GPIO.setup(relay_a_pin, GPIO.OUT)
+    GPIO.setup(relay_b_pin, GPIO.OUT)
+    GPIO.output(relay_a_pin, GPIO.LOW)
+    GPIO.output(relay_b_pin, GPIO.LOW)
+
 def main():
     #Lleva el conteo de cuantas preguntas ya se mostraron en pantalla
     numero_de_pregunta = 0
@@ -119,6 +124,8 @@ def main():
     clock = pygame.time.Clock()
     user_answer = ""
     _display.Load_new_image(numero_de_pregunta)
+
+
 
     Done = False
     while True:
@@ -161,4 +168,7 @@ def main():
 
 if __name__ == '__main__':
     get_questions()
-    main()
+    try:
+        main()
+    finally:
+        GPIO.cleanup()

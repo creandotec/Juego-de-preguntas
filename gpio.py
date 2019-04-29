@@ -6,10 +6,10 @@ from multiprocessing import Process
 class MembraneMatrix():
 	teclas = Queue()
 	palabraIngresada = ''
-	MATRIX = [	[1,2,3,'A'],
-				[4,5,6,'B'],
-				[7,8,9,'C'],
-				['*',0,'#','D']]
+	MATRIX = [	['1','2','3','A'],
+				['4','5','6','B'],
+				['7','8','9','C'],
+				['*','0','#','D']]
 
 	ROW = [29,31,33,35]
 	COL = [37,36,38,40]
