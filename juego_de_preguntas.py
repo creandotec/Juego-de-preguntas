@@ -11,12 +11,26 @@ tiempo_de_espera = 3
 
 #Posición en la que se muestra la entrada que introduce el usuario
 input_position = (100, 100)
+#Ajusta este número para cambiar el tamaño de la fuente
+font_size = 72
 
 #Número de pin en que se encuentra el relevador A
-relay_a_pin = 7
+relay_a_pin = 5
 
 #Número de pin que se encuentra el relevador B
-relay_b_pin = 9
+relay_b_pin = 7
+
+#COLUMNAS
+COL0 = 37
+COL1 = 36
+COL2 = 38
+COL3 = 40
+
+#FILAS
+ROW0 = 29
+ROW1 = 31
+ROW2 = 33
+ROW3 = 35
 
 class Preguntas:
     lista_de_preguntas = list()
@@ -37,7 +51,7 @@ class Display:
         self.screen = pygame.display.set_mode((0,0))
         self.pregunta_background = 0
         w,h = pygame.display.get_surface().get_size()
-        self.font = pygame.font.SysFont("comicsansms", 72)
+        self.font = pygame.font.SysFont("comicsansms", font_size)
         self.text = self.font.render("Hello", True, (200, 200, 200))
         self.width = w
         self.height = h
@@ -93,6 +107,68 @@ class Display:
         self.text = self.font.render(texto, True, (0,0,0))
         self.screen.blit(self.text, input_position)
         pygame.display.update()
+
+class Keypad_matrix:
+    def __init__(self):
+        self.MATRIX = [	['1','2','3','A'],
+    				['4','5','6','B'],
+    				['7','8','9','C'],
+    				['*','0','#','D']]
+
+        self.rows = [ROW0,ROW1,ROW2,ROW3]
+        self.cols = [COL0,COL1,COL2,COL3]
+
+        self.contador_de_columnas = 0
+        self.contador_de_filas = 0
+
+        self.last_key_pushed = 0
+        self.new_key_pushed = 0
+
+        self.last_column = 10
+        self.last_row = 10
+        self.keypad_is_free = True
+
+        for columna in range(0, len(self.cols)):
+            GPIO.setup(self.cols[columna], GPIO.OUT)
+            GPIO.output(self.cols[columna], GPIO.HIGH)
+        for fila in range(0, len(self.rows)):
+            GPIO.setup(self.rows[fila], GPIO.IN, pull_up_down=GPIO.PUD_UP)
+
+    def scan_keyboard(self):
+        send_info = False
+        for columna in range(0, len(self.cols)):
+            GPIO.output(self.cols[columna], GPIO.LOW)
+            for fila in range(0, len(self.rows)):
+                key_pushed = GPIO.input(self.rows[fila])
+
+                #Cuando presionan una tecla del teclado, el resultaod es falso
+                if key_pushed == False:
+                    if self.keypad_is_free == True:
+                        self.new_key_pushed = self.MATRIX[fila][columna]
+
+                        if self.new_key_pushed is not self.last_key_pushed:
+                            self.keypad_is_free = False
+                            #print(self.MATRIX[fila][columna])
+                            send_info = True
+
+                        self.last_key_pushed = self.new_key_pushed
+                        self.last_column = columna
+                        self.last_row = fila
+
+                else:
+                    if self.last_row == fila and self.last_column == columna:
+                        self.last_key_pushed = 0
+                        self.new_key_pushed = 0
+                        self.keypad_is_free = True
+
+                time.sleep(0.01)
+            GPIO.output(self.cols[columna], GPIO.HIGH)
+        if send_info == True:
+            send_info = False
+            return self.new_key_pushed
+        else:
+            return 0
+
 #Aquí configuramos las preguntas que se utilizarán durante el juego
 def get_questions():
     #Primero abrimos el documento XML en donde están las Preguntas
@@ -114,6 +190,7 @@ def init_gpio():
     GPIO.output(relay_a_pin, GPIO.LOW)
     GPIO.output(relay_b_pin, GPIO.LOW)
 
+
 def main():
     #Lleva el conteo de cuantas preguntas ya se mostraron en pantalla
     numero_de_pregunta = 0
@@ -125,10 +202,52 @@ def main():
     user_answer = ""
     _display.Load_new_image(numero_de_pregunta)
 
+    init_gpio()
 
+    _keypad = Keypad_matrix()
 
     Done = False
     while True:
+        key_pressed = _keypad.scan_keyboard()
+
+        if key_pressed is not 0:
+            #print("nueva tecla presionada")
+            #print(ord(key_pressed))
+            if key_pressed == '*':
+                #print("Tecla de aceptar")
+                correcto = Preguntas.CheckAnswer(user_answer, numero_de_pregunta)
+
+                if correcto == True:
+                    #Mostramos la imagen que corresponde a correcto
+                    _display.Show_correct_image()
+
+                    #Se aumenta la pregunta en 1, para permitir que se muestre el nuevo background y que
+                    #se evalue la respuesta del usuario con la siguiente pregunta
+                    numero_de_pregunta += 1
+                    if numero_de_pregunta == len(Preguntas.lista_de_preguntas) - 2:
+                        GPIO.output(relay_a_pin, GPIO.HIGH)
+                    elif numero_de_pregunta == len(Preguntas.lista_de_preguntas) - 1:
+                        GPIO.output(relay_b_pin, GPIO.HIGH)
+                    #mostramos la nueva imagen en la pantalla
+
+                else:
+                    _display.Show_incorrect_image()
+
+                time.sleep(tiempo_de_espera)
+
+                if numero_de_pregunta == len(Preguntas.lista_de_preguntas):
+                    GPIO.output(relay_a_pin, GPIO.LOW)
+                    GPIO.output(relay_b_pin, GPIO.LOW)
+                    numero_de_pregunta = 0
+                    user_answer = ""
+
+                _display.Load_new_image(numero_de_pregunta)
+                user_answer = ""
+
+            else:
+                user_answer += key_pressed
+                _display.Show_user_input(user_answer)
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 sys.exit()
@@ -152,6 +271,10 @@ def main():
                         #Se aumenta la pregunta en 1, para permitir que se muestre el nuevo background y que
                         #se evalue la respuesta del usuario con la siguiente pregunta
                         numero_de_pregunta += 1
+                        if numero_de_pregunta == len(Preguntas.lista_de_preguntas) - 1:
+                            GPIO.output(relay_a_pin, GPIO.HIGH)
+                        elif numero_de_pregunta == len(Preguntas.lista_de_preguntas):
+                            GPIO.output(relay_b_pin, GPIO.HIGH)
                         #mostramos la nueva imagen en la pantalla
 
                     else:
@@ -161,7 +284,9 @@ def main():
                     _display.Load_new_image(numero_de_pregunta)
                     user_answer = ""
 
-        if numero_de_pregunta > len(Preguntas.lista_de_preguntas):
+        if numero_de_pregunta == len(Preguntas.lista_de_preguntas):
+            GPIO.output(relay_a_pin, GPIO.LOW)
+            GPIO.output(relay_b_pin, GPIO.LOW)
             numero_de_pregunta = 0
             user_answer = ""
         clock.tick(60)
