@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
+# coding=utf-8
 import xml.dom.minidom as xmlDom
 import pygame
 import sys
 import time
 import RPi.GPIO as GPIO
 
+###############################################################################
+'''Puedes modificar estas variables para ajustarlas a tus necesidades'''
 #Tiempo de espera antes de quitar la imagen de correcto o incorrecto
 #modifica este valor para esperar más o menos tiempo, el valor es en segundos
 tiempo_de_espera = 3
@@ -13,10 +16,16 @@ tiempo_de_espera = 3
 input_position = (100, 100)
 #Ajusta este número para cambiar el tamaño de la fuente
 font_size = 72
+#Ajusta este valor para cambiar el color de las letras, está en formato RGB
+fon_color = (255,255,255)
+
+encender_relay = GPIO.LOW
+apagar_relay = GPIO.HIGH
+################################################################################
+
 
 #Número de pin en que se encuentra el relevador A
 relay_a_pin = 5
-
 #Número de pin que se encuentra el relevador B
 relay_b_pin = 7
 
@@ -39,8 +48,11 @@ class Preguntas:
     user_chosen_option = "1"
 
     def CheckAnswer(user_answer, numero_de_pregunta):
-        correc_answer = Preguntas.lista_de_preguntas[numero_de_pregunta].getAttribute("ans")
-        if correc_answer == user_answer:
+        if user_answer == "EXITAPP":
+            sys.exit()
+
+        correct_answer = Preguntas.lista_de_preguntas[numero_de_pregunta].getAttribute("ans")
+        if correct_answer == user_answer:
             print("Ok")
             return True
         else:
@@ -104,7 +116,16 @@ class Display:
     def Show_user_input(self, user_input):
         texto = ""
         texto += user_input
-        self.text = self.font.render(texto, True, (0,0,0))
+        self.text = self.font.render(texto, True, fon_color)
+        self.screen.blit(self.text, input_position)
+        pygame.display.update()
+
+    def Refresh_user_input(self, user_input):
+        texto = ""
+        texto += user_input
+        self.text = self.font.render(texto, True, fon_color)
+        self.screen.fill((0,0,0))
+        self.screen.blit(self.pregunta_background, (0,0))
         self.screen.blit(self.text, input_position)
         pygame.display.update()
 
@@ -187,8 +208,8 @@ def init_gpio():
     GPIO.setmode(GPIO.BOARD)
     GPIO.setup(relay_a_pin, GPIO.OUT)
     GPIO.setup(relay_b_pin, GPIO.OUT)
-    GPIO.output(relay_a_pin, GPIO.LOW)
-    GPIO.output(relay_b_pin, GPIO.LOW)
+    GPIO.output(relay_a_pin, apagar_relay)
+    GPIO.output(relay_b_pin, apagar_relay)
 
 
 def main():
@@ -209,7 +230,7 @@ def main():
     Done = False
     while True:
         key_pressed = _keypad.scan_keyboard()
-
+        tiempo_de_relay = 0
         if key_pressed is not 0:
             #print("nueva tecla presionada")
             #print(ord(key_pressed))
@@ -224,20 +245,26 @@ def main():
                     #Se aumenta la pregunta en 1, para permitir que se muestre el nuevo background y que
                     #se evalue la respuesta del usuario con la siguiente pregunta
                     numero_de_pregunta += 1
-                    if numero_de_pregunta == len(Preguntas.lista_de_preguntas) - 2:
-                        GPIO.output(relay_a_pin, GPIO.HIGH)
-                    elif numero_de_pregunta == len(Preguntas.lista_de_preguntas) - 1:
-                        GPIO.output(relay_b_pin, GPIO.HIGH)
+                    tiempo_de_relay = 1
+                    if numero_de_pregunta == len(Preguntas.lista_de_preguntas) - 1:
+                        GPIO.output(relay_a_pin, encender_relay)
+                        time.sleep(tiempo_de_relay)
+                        GPIO.output(relay_a_pin, apagar_relay)
+                    elif numero_de_pregunta == len(Preguntas.lista_de_preguntas):
+                        GPIO.output(relay_b_pin, encender_relay)
+                        time.sleep(tiempo_de_relay)
+                        GPIO.output(relay_b_pin, apagar_relay)
+
                     #mostramos la nueva imagen en la pantalla
 
                 else:
                     _display.Show_incorrect_image()
 
-                time.sleep(tiempo_de_espera)
+                time.sleep(tiempo_de_espera - tiempo_de_relay)
 
                 if numero_de_pregunta == len(Preguntas.lista_de_preguntas):
-                    GPIO.output(relay_a_pin, GPIO.LOW)
-                    GPIO.output(relay_b_pin, GPIO.LOW)
+                    GPIO.output(relay_a_pin, apagar_relay)
+                    GPIO.output(relay_b_pin, apagar_relay)
                     numero_de_pregunta = 0
                     user_answer = ""
 
@@ -251,47 +278,65 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 sys.exit()
-            if event.type == pygame.K_ESCAPE:
-                sys.exit()
+
             if event.type == pygame.KEYDOWN:
                 key = pygame.key.name(event.key)
                 #Cuando la tecla presionada no es igual a "Enter", se actualiza la pantalla
                 if event.key is not pygame.K_RETURN:
-                    key = key.capitalize()
-                    user_answer += key
-                    _display.Show_user_input(user_answer)
+                    #key_char = chr(key)
+                    if event.key is not pygame.K_BACKSPACE:
+                        key = key.capitalize()
+
+                        len_of_key = len(key)
+                        if(len_of_key == 1):
+                            if(ord(key) > 47 or ord(key) < 57 or ord(key) >64 or ord(key) < 91):
+                                user_answer += key
+                                _display.Show_user_input(user_answer)
+                    else:
+                        if len(user_answer) > 0:
+                            user_answer = user_answer[:-1]
+                            print("Borrando")
+                            _display.Refresh_user_input(user_answer)
                 #En caso contrario, analizamos la respuesta con la que está guardada en el archivo xml
                 else:
-                    #La función CheckAnswer devuelve verdadero cuando la respuesta es correcta
-                    #devuelve falso cuando la respuesta es incorrecta
-                    correcto = Preguntas.CheckAnswer(user_answer, numero_de_pregunta)
+                    if len(user_answer) > 0:
+                        #La función CheckAnswer devuelve verdadero cuando la respuesta es correcta
+                        #devuelve falso cuando la respuesta es incorrecta
+                        correcto = Preguntas.CheckAnswer(user_answer, numero_de_pregunta)
+                        tiempo_de_relay = 0
+                        if correcto == True:
+                            #Mostramos la imagen que corresponde a correcto
+                            _display.Show_correct_image()
 
-                    if correcto == True:
-                        #Mostramos la imagen que corresponde a correcto
-                        _display.Show_correct_image()
+                            #Se aumenta la pregunta en 1, para permitir que se muestre el nuevo background y que
+                            #se evalue la respuesta del usuario con la siguiente pregunta
+                            numero_de_pregunta += 1
+                            tiempo_de_relay = 1
+                            if numero_de_pregunta == len(Preguntas.lista_de_preguntas) - 1:
+                                GPIO.output(relay_a_pin, encender_relay)
+                                time.sleep(tiempo_de_relay)
+                                GPIO.output(relay_a_pin, apagar_relay)
 
-                        #Se aumenta la pregunta en 1, para permitir que se muestre el nuevo background y que
-                        #se evalue la respuesta del usuario con la siguiente pregunta
-                        numero_de_pregunta += 1
-                        if numero_de_pregunta == len(Preguntas.lista_de_preguntas) - 1:
-                            GPIO.output(relay_a_pin, GPIO.HIGH)
-                        elif numero_de_pregunta == len(Preguntas.lista_de_preguntas):
-                            GPIO.output(relay_b_pin, GPIO.HIGH)
-                        #mostramos la nueva imagen en la pantalla
+                            elif numero_de_pregunta == len(Preguntas.lista_de_preguntas):
+                                GPIO.output(relay_b_pin, encender_relay)
+                                time.sleep(tiempo_de_relay)
+                                GPIO.output(relay_b_pin, apagar_relay)
+                            #mostramos la nueva imagen en la pantalla
 
-                    else:
-                        _display.Show_incorrect_image()
+                        else:
+                            _display.Show_incorrect_image()
 
-                    time.sleep(tiempo_de_espera)
-                    _display.Load_new_image(numero_de_pregunta)
-                    user_answer = ""
+                        time.sleep(tiempo_de_espera - tiempo_de_relay)
 
-        if numero_de_pregunta == len(Preguntas.lista_de_preguntas):
-            GPIO.output(relay_a_pin, GPIO.LOW)
-            GPIO.output(relay_b_pin, GPIO.LOW)
-            numero_de_pregunta = 0
-            user_answer = ""
-        clock.tick(60)
+
+                        if numero_de_pregunta == len(Preguntas.lista_de_preguntas):
+                            GPIO.output(relay_a_pin, apagar_relay)
+                            GPIO.output(relay_b_pin, apagar_relay)
+                            numero_de_pregunta = 0
+                            user_answer = ""
+                        _display.Load_new_image(numero_de_pregunta)
+                        user_answer = ""
+            clock.tick(60)
 
 if __name__ == '__main__':
     get_questions()
